@@ -29,8 +29,27 @@ The hardware components I have used to carry it out are:
 
 ## Hardware implementation
 
+### Power supply 
+
+This project uses a wide variety of components that require different voltage levels to operate. While the electric cylinder uses 12V, at a nominal current of 0.7A, the microcontroller with all the electronic components operate at 5V and small currents.
+
+To power these elements I started with a 12V-5A power supply (certainly overdimensioned in power for the real needs of the project, I know) and used a LM2596 buck converter to obtain a 5V output.
+
+I recommend the use of a buck converter instead of a regulated power supply to reduce from 12V to 5V due to the higher efficiency and especially the temperature difference. In regulated supplies the voltage is reduced by dissipating energy in the form of heat, which can be detrimental to the rest of the components and power efficiency.
+
+I also placed a 4 amp relay as a protection mechanism, either in case of a motor jam (in which case the current demanded would increase drastically, and could burn the motor itself), or in case of a short circuit (it will be placed outdoors, it could get wet) or any other mishap.
+
+### H-Bridge 
+
+### LCD control panel
+
+### Other parts
+
 To Do ...
 
+
 ## Software implementation 
+
+### FSM
 
 To Do ...
