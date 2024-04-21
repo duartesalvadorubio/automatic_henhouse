@@ -22,10 +22,14 @@ The hardware components I have used to carry it out are:
 - Three 12 mm pushbuttons
 - Two LED lights: one blue and one red
 - One buzzer
-- One 4 Amp fuse
+- One 4 Amp fuse and a fuse connector
 - Barrel jack connectors.
 - 12 V power supply
 - Electric cylinder actuator
+
+Here are some of the pieces I have designed in 3D for this project:
+- [LCD mount](https://www.thingiverse.com/thing:6580499)
+- [Arduino mount](https://www.thingiverse.com/thing:6578697)
 
 ## Hardware implementation
 
