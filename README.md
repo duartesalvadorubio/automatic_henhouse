@@ -29,6 +29,9 @@ The hardware components I have used to carry it out are:
 
 ## Hardware implementation
 
+Here is the [wiring diagram](images/automatic_henhouse_schematic.pdf).
+
+
 ### Power supply 
 
 This project uses a wide variety of components that require different voltage levels to operate. While the electric cylinder uses 12V, at a nominal current of 0.7A, the microcontroller with all the electronic components operate at 5V and small currents.
