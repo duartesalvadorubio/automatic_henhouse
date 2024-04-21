@@ -1,6 +1,7 @@
 # automatic_henhouse
 Little personal project to automate a henhouse door using Arduino.
 
+![overview](images/photos/overview/IMG20240419190622.jpg)
 
 ## Description
 
