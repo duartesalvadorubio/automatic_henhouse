@@ -7,6 +7,7 @@ void setup()
 {
   initializeInputOutput();
   Serial.begin(115200);
+  readStoredTime();
   manageLCD();
 }
 
@@ -18,9 +19,10 @@ void loop()
     getCurrentHour();
     FSM();
     manageInterface();
+    storeTime();
     manageActuators();
     manageAlarms();
-    manageLights();
+    manageLCDBacklight();
     timeFlags();
 
     prevMainMillis = millis();

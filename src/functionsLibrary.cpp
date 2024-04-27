@@ -5,6 +5,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <SPI.h>
 #include <RTClib.h>
+#include <EEPROM.h>
 
 #include <functionsLibrary.h>
 
@@ -75,6 +76,11 @@ int openingHour = 8;
 int openingMinute = 00;
 int closingHour = 22;
 int closingMinute = 00;
+
+byte openingHourAddress = 0;
+byte openingMinuteAddress = 1;
+byte closingHourAddress = 2;
+byte closingMinuteAddress = 3;
 
 int currentYear = 0;
 int currentMonth = 0;
@@ -150,7 +156,7 @@ void setupTimeDS3231()
     // rtc.adjust(DateTime(2016, 1, 21, 3, 0, 0));
   }
 }
-
+// Get hour from clock
 void getCurrentHour()
 {
   currentYear = int(rtc.now().year());
@@ -159,6 +165,34 @@ void getCurrentHour()
   currentHour = int(rtc.now().hour());
   currentMinute = int(rtc.now().minute());
   currentSecond = int(rtc.now().second());
+}
+
+// Save opening-closing time moment in EEPROM
+int storeTimePrevState = 0;
+void storeTime()
+{
+  if (storeTimePrevState == 4 && state == 0)
+  {
+    EEPROM.write(openingHourAddress, (byte)openingHour);
+    EEPROM.write(openingMinuteAddress, (byte)openingMinute);
+    EEPROM.write(closingHourAddress, (byte)closingHour);
+    EEPROM.write(closingMinuteAddress, (byte)closingMinute);
+  }
+  storeTimePrevState = state;
+}
+
+// Read opening-closing time moment from EEPROM
+void readStoredTime()
+{
+  byte byteVar = 0;
+  EEPROM.get(openingHourAddress, byteVar);
+  openingHour = (int)byteVar;
+  EEPROM.get(openingMinuteAddress, byteVar);
+  openingMinute = (int)byteVar;
+  EEPROM.get(closingHourAddress, byteVar);
+  closingHour = (int)byteVar;
+  EEPROM.get(closingMinuteAddress, byteVar);
+  closingMinute = (int)byteVar;
 }
 
 // Digital read of button states
@@ -213,7 +247,6 @@ void updateButtonStates()
   prevAuxButton = currentAuxButton;
 
   prevMillisButtonStates = millis();
-
 }
 
 // FSM
@@ -710,7 +743,7 @@ void manageLCD()
   }
 }
 
-void manageLights()
+void manageLCDBacklight()
 {
   if (openButton || closeButton || adjustButton || auxButton)
   {
