@@ -64,7 +64,7 @@ Image source and H Bridge with relay explanation via Instructables: https://www.
 I made the control panel using three push buttons and a 16x2 LCD panel.
 The panel I used has an I2C driver that simplifies the assembly by using only four wires, so I recommend using a similar one.
 
-I integrated the parts into the automation box using a 3D printed panel part, connecting each button to an input terminal of the Arduino.
+I integrated the parts into the automation box using a [3D printed panel part](https://www.thingiverse.com/thing:6580499), connecting each button to an input terminal of the Arduino.
 
 In this case, the input buttons should be connected by a pull-up resistor (or pull-down, depending on how you prefer to make the assembly), avoiding that the Arduino terminals can be in a high impedance state while the button is not actuated. In the [wiring diagram](images/automatic_henhouse_schematic.pdf) you can see how these pins are mounted.
 
