@@ -66,7 +66,7 @@ The panel I used has an I2C driver that simplifies the assembly by using only fo
 
 I integrated the parts into the automation box using a 3D printed panel part, connecting each button to an input terminal of the Arduino.
 
-In this case, the input buttons should be connected by a pull-up resistor (or pull-down, depending on how you prefer to make the assembly), avoiding that the Arduino terminals can be in a high impedance state while the button is not actuated. In the assembly diagram you can see how these pins are mounted.
+In this case, the input buttons should be connected by a pull-up resistor (or pull-down, depending on how you prefer to make the assembly), avoiding that the Arduino terminals can be in a high impedance state while the button is not actuated. In the [wiring diagram](images/automatic_henhouse_schematic.pdf) you can see how these pins are mounted.
 
 In my case, to simplify the assembly, I used directly the Arduino's internal pull-up resistors, whose configuration can be done in a simple way by initializing the input terminal as `pinMode(buttonPin, INPUT_PULLUP);`.
 
