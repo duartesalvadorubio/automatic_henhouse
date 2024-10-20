@@ -77,6 +77,9 @@ int openingMinute = 00;
 int closingHour = 22;
 int closingMinute = 00;
 
+int setupHour = 0;
+int setupMinute = 0;
+
 byte openingHourAddress = 0;
 byte openingMinuteAddress = 1;
 byte closingHourAddress = 2;
@@ -132,6 +135,8 @@ void initializeInputOutput()
   rtc.begin();
   currentHour = (rtc.now().hour());
   currentMinute = (rtc.now().minute());
+  setupHour = openingHour;
+  setupMinute = currentMinute;
 }
 
 // In case we need to update RTC time
@@ -177,6 +182,17 @@ void storeTime()
     EEPROM.write(openingMinuteAddress, (byte)openingMinute);
     EEPROM.write(closingHourAddress, (byte)closingHour);
     EEPROM.write(closingMinuteAddress, (byte)closingMinute);
+  }
+
+  if (storeTimePrevState == 5 && state == 6){
+    setupMinute = currentMinute;
+    setupHour = currentHour;
+  }
+
+  if (storeTimePrevState == 6 && state == 0)
+  {
+    rtc.adjust(DateTime(rtc.now().year(), rtc.now().month(), rtc.now().day(), setupHour, setupMinute, 0));
+
   }
   storeTimePrevState = state;
 }
@@ -404,7 +420,7 @@ void FSM()
     }
     break;
 
-  case 5:
+  case 5: //Auto mode on-off setup
 
     if (adjustButton)
     {
@@ -412,7 +428,7 @@ void FSM()
     }
     break;
 
-  case 3:
+  case 3: //Opening time setup
 
     if (adjustButton)
     {
@@ -420,7 +436,16 @@ void FSM()
     }
     break;
 
-  case 4:
+  case 4: //Closing time setup
+
+    if (adjustButton)
+    {
+      // state = 0;
+      state = 6;
+    }
+    break;
+  
+  case 6: //Clock time setup
 
     if (adjustButton)
     {
@@ -532,6 +557,43 @@ void manageInterface()
       enableAutoClosing = !enableAutoClosing;
       manageLCD();
     }
+    break;
+
+  case 6: //Setup clock time
+    // if (closeButton)
+    while (!digitalRead(closeButtonPin))
+    {
+      setupMinute += 1;
+
+      if (setupMinute >= 60)
+      {
+        setupHour++;
+        setupMinute = setupMinute - 60;
+
+        if (setupHour >= 24)
+        {
+          setupHour = 0;
+        }
+      }
+      manageLCD();
+    }
+
+    // if (openButton)
+    while(!digitalRead(openButtonPin))
+    {
+      setupMinute -= 1;
+      if (setupMinute < 0)
+      {
+        setupMinute += 60;
+        setupHour--;
+        if (setupHour < 0)
+        {
+          setupHour = 23;
+        }
+      }
+      manageLCD();
+    }
+
     break;
 
   default:
@@ -736,6 +798,16 @@ void manageLCD()
     {
       lcd.print("No");
     }
+    break;
+
+  case 6:
+    lcd.clear();
+    lcd.print("Hora Reloj");
+    lcd.setCursor(0, 1);
+    lcd.print(">");
+    lcd.print(twoCifresValue(setupHour));
+    lcd.print(":");
+    lcd.print(twoCifresValue(setupMinute));
     break;
 
   default:
