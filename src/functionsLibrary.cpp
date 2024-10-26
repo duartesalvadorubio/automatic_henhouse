@@ -43,11 +43,23 @@ bool enableAutoOpening = true;
 bool enableAutoClosing = true;
 bool enableBacklight = true;
 
-int prevInterfaceState = 0;
+enum state_enum{
+  MAIN,
+  OPENING,
+  CLOSING,
+  OPENING_TIME_SETUP,
+  CLOSING_TIME_SETUP,
+  AUTO_CONFIG_SETUP,
+  CLOCK_TIME_SETUP,
+};
+
+state_enum prevInterfaceState = MAIN;
 
 // FSM
-int state = 0;
-// int prevState = 0;
+// int state = MAIN;
+state_enum state = MAIN;
+
+// int prevstate = MAIN;
 bool openButton = false;
 bool closeButton = false;
 bool adjustButton = false;
@@ -61,7 +73,7 @@ bool firstTimeState1 = true;
 int secondsPressedBottonUp = 0;
 int secondsPressedBottonDown = 0;
 int secondsPressedBottonAdjust = 0;
-const int secondsToChangeState = 2;
+const int secondsToChangeState = CLOSING;
 
 unsigned long secondsToOpen = 55;
 unsigned long secondsToClose = 55;
@@ -173,10 +185,10 @@ void getCurrentHour()
 }
 
 // Save opening-closing time moment in EEPROM
-int storeTimePrevState = 0;
+state_enum storeTimePrevState = MAIN;
 void storeTime()
 {
-  if (storeTimePrevState == 4 && state == 0)
+  if (storeTimePrevState == CLOSING_TIME_SETUP && state == 0)
   {
     EEPROM.write(openingHourAddress, (byte)openingHour);
     EEPROM.write(openingMinuteAddress, (byte)openingMinute);
@@ -184,12 +196,12 @@ void storeTime()
     EEPROM.write(closingMinuteAddress, (byte)closingMinute);
   }
 
-  if (storeTimePrevState == 4 && state == 6){
+  if (storeTimePrevState == CLOSING_TIME_SETUP && state == CLOCK_TIME_SETUP){
     setupMinute = currentMinute;
     setupHour = currentHour;
   }
 
-  if (storeTimePrevState == 6 && state == 0)
+  if (storeTimePrevState == CLOCK_TIME_SETUP && state == MAIN)
   {
     rtc.adjust(DateTime(rtc.now().year(), rtc.now().month(), rtc.now().day(), setupHour, setupMinute, 0));
 
@@ -270,7 +282,7 @@ void FSM()
 {
   switch (state)
   {
-  case 0:
+  case MAIN:
 
     if (openButton && doorStatus == 1)
     {
@@ -287,7 +299,7 @@ void FSM()
         }
         if (secondsPressedBottonUp >= secondsToChangeState)
         {
-          state = 1;
+          state = OPENING;
           secondsPressedBottonUp = 0;
           enableChangeState1 = false;
         }
@@ -315,7 +327,7 @@ void FSM()
         }
         if (secondsPressedBottonDown >= secondsToChangeState)
         {
-          state = 2;
+          state = CLOSING;
           secondsPressedBottonDown = 0;
           enableChangeState2 = false;
         }
@@ -343,7 +355,7 @@ void FSM()
         }
         if (secondsPressedBottonAdjust >= secondsToChangeState)
         {
-          state = 5;
+          state = AUTO_CONFIG_SETUP;
           secondsPressedBottonAdjust = 0;
           enableChangeState5 = false;
         }
@@ -360,7 +372,7 @@ void FSM()
     {
       if (currentHour == openingHour && currentMinute == openingMinute)
       {
-        state = 1;
+        state = OPENING;
       }
     }
 
@@ -368,12 +380,12 @@ void FSM()
     {
       if (currentHour == closingHour && currentMinute == closingMinute)
       {
-        state = 2;
+        state = CLOSING;
       }
     }
     break;
 
-  case 1: // Opening
+  case OPENING: // Opening
 
     if (doorStatus == 1)
     {
@@ -388,16 +400,16 @@ void FSM()
         prevMillisOpening = 0;
         doorStatus = false;
         firstTimeState1 = true;
-        state = 0;
+        state = MAIN;
       }
     }
     else
     {
-      state = 0;
+      state = MAIN;
     }
     break;
 
-  case 2: // Closing
+  case CLOSING: // Closing
 
     if (doorStatus == 0)
     {
@@ -411,45 +423,45 @@ void FSM()
         prevMillisClosing = 0;
         doorStatus = 1;
         firstTimeState2 = true;
-        state = 0;
+        state = MAIN;
       }
     }
     else
     {
-      state = 0;
+      state = MAIN;
     }
     break;
 
-  case 5: //Auto mode on-off setup
+  case AUTO_CONFIG_SETUP: //Auto mode on-off setup
 
     if (adjustButton)
     {
-      state = 3;
+      state = OPENING_TIME_SETUP;
     }
     break;
 
-  case 3: //Opening time setup
+  case OPENING_TIME_SETUP: //Opening time setup
 
     if (adjustButton)
     {
-      state = 4;
+      state = CLOSING_TIME_SETUP;
     }
     break;
 
-  case 4: //Closing time setup
+  case CLOSING_TIME_SETUP: //Closing time setup
 
     if (adjustButton)
     {
-      // state = 0;
-      state = 6;
+      // state = MAIN;
+      state = CLOCK_TIME_SETUP;
     }
     break;
   
-  case 6: //Clock time setup
+  case CLOCK_TIME_SETUP: //Clock time setup
 
     if (adjustButton)
     {
-      state = 0;
+      state = MAIN;
     }
     break;
 
@@ -468,14 +480,14 @@ void manageInterface()
 
   switch (state)
   {
-  case 0:
+  case MAIN:
     if (currentMinute != prevInterfaceMinute)
     {
       manageLCD();
     }
     break;
 
-  case 3:
+  case OPENING_TIME_SETUP:
     if (closeButton)
     {
       openingMinute += 15;
@@ -510,7 +522,7 @@ void manageInterface()
 
     break;
 
-  case 4:
+  case CLOSING_TIME_SETUP:
     if (closeButton)
     {
       closingMinute += 15;
@@ -545,7 +557,7 @@ void manageInterface()
 
     break;
 
-  case 5:
+  case AUTO_CONFIG_SETUP:
     if (openButton)
     {
       enableAutoOpening = !enableAutoOpening;
@@ -559,7 +571,7 @@ void manageInterface()
     }
     break;
 
-  case 6: //Setup clock time
+  case CLOCK_TIME_SETUP: //Setup clock time
     // if (closeButton)
     while (!digitalRead(closeButtonPin))
     {
@@ -613,12 +625,12 @@ void manageActuators()
 {
   switch (state)
   {
-  case 1:
+  case OPENING:
     digitalWrite(hbridge_A, LOW);
     digitalWrite(hbridge_B, HIGH);
     break;
 
-  case 2:
+  case CLOSING:
     digitalWrite(hbridge_A, HIGH);
     digitalWrite(hbridge_B, LOW);
     break;
@@ -635,7 +647,7 @@ void manageAlarms()
 {
   switch (state)
   {
-  case 0:
+  case MAIN:
     if (doorStatus == true) // Door closed
     {
       digitalWrite(greenLedPin, LOW);
@@ -649,12 +661,12 @@ void manageAlarms()
     alarmFlag = false;
     alarmStatus = false;
     break;
-  case 1:
+  case OPENING:
     alarmFlag = true;
     currentLedPin = greenLedPin;
     break;
 
-  case 2:
+  case CLOSING:
     alarmFlag = true;
     currentLedPin = redLedPin;
     break;
@@ -702,7 +714,7 @@ void manageLCD()
 {
   switch (state)
   {
-  case 0:
+  case MAIN:
     lcd.clear();
     lcd.print(twoCifresValue(currentDay));
     lcd.print("/");
@@ -741,21 +753,21 @@ void manageLCD()
     }
     break;
 
-  case 1:
+  case OPENING:
     lcd.clear();
     lcd.print("Motor activo");
     lcd.setCursor(0, 1);
     lcd.print("Abriendo -> ");
     break;
 
-  case 2:
+  case CLOSING:
     lcd.clear();
     lcd.print("Motor activo");
     lcd.setCursor(0, 1);
     lcd.print("Cerrando ->");
     break;
 
-  case 3:
+  case OPENING_TIME_SETUP:
     lcd.clear();
     lcd.print("Hora abrir");
     lcd.setCursor(0, 1);
@@ -765,7 +777,7 @@ void manageLCD()
     lcd.print(twoCifresValue(openingMinute));
     break;
 
-  case 4:
+  case CLOSING_TIME_SETUP:
     lcd.clear();
     lcd.print("Hora cerrar");
     lcd.setCursor(0, 1);
@@ -775,7 +787,7 @@ void manageLCD()
     lcd.print(twoCifresValue(closingMinute));
     break;
 
-  case 5:
+  case AUTO_CONFIG_SETUP:
     lcd.clear();
     lcd.print("Modo automatico");
     lcd.setCursor(0, 1);
@@ -800,7 +812,7 @@ void manageLCD()
     }
     break;
 
-  case 6:
+  case CLOCK_TIME_SETUP:
     lcd.clear();
     lcd.print("Hora Reloj");
     lcd.setCursor(0, 1);
