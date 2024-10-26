@@ -184,7 +184,7 @@ void storeTime()
     EEPROM.write(closingMinuteAddress, (byte)closingMinute);
   }
 
-  if (storeTimePrevState == 5 && state == 6){
+  if (storeTimePrevState == 4 && state == 6){
     setupMinute = currentMinute;
     setupHour = currentHour;
   }
